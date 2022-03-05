@@ -36,7 +36,6 @@ touch /system/etc/init.d/99macaddrchange
 
 {% highlight sh %}
 #!/bin/sh
-
 set -ex
 
 # If "eth0" is the network adapter we want to change.
@@ -50,9 +49,10 @@ ip link set dev eth0 up
 5. Reboot the Raspberry Pi and run `ip link show` again to check if the changes are automatically applied.
 
 
+
 References:
 
-- https://h4des.org/blog/index.php?/archives/359-Android-LineageOS-16-Execute-Script-on-Start-Up.html
-- https://man7.org/linux/man-pages/man8/ip-link.8.html
-- https://konstakang.com/devices/rpi3/LineageOS17.1/
+- [man page for ip link](https://man7.org/linux/man-pages/man8/ip-link.8.html){:target="_blank"}{:rel="noopener noreferrer"}
+- [Konstakang's LineageOS 17.1 build for Raspberry Pi 3](https://konstakang.com/devices/rpi3/LineageOS17.1/){:target="_blank"}{:rel="noopener noreferrer"}
+- [Guide to add start up scripts to LineageOS 16](https://h4des.org/blog/index.php?/archives/359-Android-LineageOS-16-Execute-Script-on-Start-Up.html){:target="_blank"}{:rel="noopener noreferrer"}
 
