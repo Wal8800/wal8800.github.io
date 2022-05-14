@@ -54,18 +54,133 @@ Here is a high level overview of how the extension interacts with the main appli
 <figcaption style="text-align: center; font-style: italic;">Diagram of all the related components</figcaption>
 </figure>
 
-When the python application starts, the application creates an app indicator object with information such as the icon file path and the type of status icon. Then the application creates a `GtkMenu`  object and pass the `GtkMenu` to the app indicator. The app indicator will pass the menu to dbusmenu library and parse the `GtkMenu` object recursively to create `DbusmenuMenu` and `DbusmenuMenuItem`. After that, the app indicator will create a dbusmenu server and register a StatusNotifierItem on the Dbus. The StatusNotifierItem contains general information about the app indicator. For example, the menu path on the Dbus for the dbusmenu server.
+When the python application starts, the application creates an app indicator object with information such as the icon file path and the type of status icon. Then the application creates a `GtkMenu`  object and pass the `GtkMenu` to the app indicator. The app indicator will pass the menu to dbusmenu library and parse the `GtkMenu` object recursively to create `DbusmenuMenu` and `DbusmenuMenuItem`. Then the app indicator will create a dbusmenu server and register a StatusNotifierItem on the D-Bus. The D-Bus is a message bus system that is available on Ubuntu for communication between processes and applications.The python application will use the D-Bus to communicate with the extension and vice vice versa. We can watch the Dbus messages using `dbus-monitor`
 
-On the other hand, `gnome-shell-extension-appindicator` have a watcher running in the background, watching for any new StatusNotiferItem on the Dbus. Upon new StatusNotifierItem, the extension will create a proxy app indicator object and connect the proxy app indicator to the StatusNotifierItem. The proxy app indicator is used to access the app indicator information from the StatusNotifierItem.
 
-The watcher will also creates an indicator status icon object with a dbusmenu client. The indicator status icon object represents the app indicator icon and menu that is rendered on the UI.The dbusmenu client connects to the dbusmenu server using the menu path from the StatusNotifierItem. The server will propagate any changes for the app indicator menu to the client through the Dbus. When the indicator status icon object is created, the extension will render the app indicator icon and menu on the Desktop UI.
+For example, registering status notifier item.
 
-Any state changes or events on the app indicator in the python application will sync across to the proxy app indicator and vice versa. For example, updating the status icon in the python application, will update the extension's proxy app indicator amd trigger the indicator status icon object to use the new icon. 
+```
+method call time=1652169917.112493 sender=:1.184 -> destination=:1.37 serial=14 path=/StatusNotifierWatcher; interface=org.kde.StatusNotifierWatcher; member=RegisterStatusNotifierItem
+   string "/org/ayatana/NotificationItem/example_simple_client"
+```
+
+
+On the other hand, `gnome-shell-extension-appindicator` have a watcher running in the background, watching for any new StatusNotiferItem on the D-Bus. Upon new StatusNotifierItem, the extension will create a proxy app indicator object and connect the proxy app indicator to the StatusNotifierItem. The proxy app indicator is used to access the app indicator information from the StatusNotifierItem.
+
+
+For example, how it looks on the D-bus when getting all information on the StatusNotifierItem.
+```
+method call time=1652169917.115926 sender=:1.37 -> destination=:1.184 serial=1354 path=/org/ayatana/NotificationItem/example_simple_client; interface=org.freedesktop.DBus.Properties; member=GetAll
+   string "org.kde.StatusNotifierItem"
+method return time=1652169917.116081 sender=:1.184 -> destination=:1.37 serial=15 reply_serial=1354
+   array [
+      dict entry(
+         string "Id"
+         variant             string "example-simple-client"
+      )
+      dict entry(
+         string "Category"
+         variant             string "ApplicationStatus"
+      )
+      dict entry(
+         string "Status"
+         variant             string "Active"
+      )
+      dict entry(
+         string "IconName"
+         variant             string "/home/wal8800/workspace/github-notifier/images/mushroom.png"
+      )
+      dict entry(
+         string "IconAccessibleDesc"
+         variant             string ""
+      )
+      dict entry(
+         string "AttentionIconName"
+         variant             string "indicator-messages-new"
+      )
+      dict entry(
+         string "AttentionAccessibleDesc"
+         variant             string ""
+      )
+      dict entry(
+         string "Title"
+         variant             string "example.py"
+      )
+      dict entry(
+         string "IconThemePath"
+         variant             string ""
+      )
+      dict entry(
+         string "Menu"
+         variant             object path "/org/ayatana/NotificationItem/example_simple_client/Menu"
+      )
+      dict entry(
+         string "XAyatanaLabel"
+         variant             string ""
+      )
+      dict entry(
+         string "XAyatanaLabelGuide"
+         variant             string ""
+      )
+      dict entry(
+         string "XAyatanaOrderingIndex"
+         variant             uint32 0
+      )
+   ]
+```
+
+
+The watcher will also creates an indicator status icon object with a dbusmenu client. The indicator status icon object represents the app indicator icon and menu that is rendered on the UI. The dbusmenu client connects to the dbusmenu server using the menu path from the StatusNotifierItem. The server will propagate any changes for the app indicator menu to the client through the D-Bus. Once the indicator status icon object is created, the extension will render the app indicator icon and menu on the Desktop UI.
+
+dbus client connecting to the dbus server
+
+```
+method call time=1652169917.121955 sender=:1.37 -> destination=org.freedesktop.DBus serial=1358 path=/org/freedesktop/DBus; interface=org.freedesktop.DBus; member=AddMatch
+   string "type='signal',sender=':1.184',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged',path='/org/ayatana/NotificationItem/example_simple_client/Menu',arg0='com.canonical.dbusmenu'"
+method return time=1652169917.121970 sender=org.freedesktop.DBus -> destination=:1.37 serial=444 reply_serial=1358
+method call time=1652169917.122006 sender=:1.37 -> destination=org.freedesktop.DBus serial=1359 path=/org/freedesktop/DBus; interface=org.freedesktop.DBus; member=AddMatch
+   string "type='signal',sender=':1.184',interface='com.canonical.dbusmenu',path='/org/ayatana/NotificationItem/example_simple_client/Menu'"
+method return time=1652169917.122019 sender=org.freedesktop.DBus -> destination=:1.37 serial=445 reply_serial=1359
+```
+
+Any state changes or events on the app indicator in the python application will sync across to the proxy app indicator and vice versa. For example, when I open up the menu by clicking on the icon, clicking on one of the item and, closing menu. There are messages for each of the events.
+
+
+_sending "opened" event and triggering "AboutToShow" hooks_
+```
+method call time=1652170713.678815 sender=:1.37 -> destination=:1.184 serial=1446 path=/org/ayatana/NotificationItem/example_simple_client/Menu; interface=com.canonical.dbusmenu; member=Event
+   int32 0
+   string "opened"
+   variant       int32 0
+   uint32 0
+
+method call time=1652170715.908974 sender=:1.37 -> destination=:1.184 serial=1446 path=/org/ayatana/NotificationItem/example_simple_client/Menu; interface=com.canonical.dbusmenu; member=AboutToShow
+   int32 0
+method return time=1652170715.909142 sender=:1.184 -> destination=:1.37 serial=23 reply_serial=1445
+method return time=1652170715.909215 sender=:1.184 -> destination=:1.37 serial=24 reply_serial=1446
+   boolean false
+```
+
+_sending "clicked" event_
+```
+method call time=1652170717.274419 sender=:1.37 -> destination=:1.184 serial=1447 path=/org/ayatana/NotificationItem/example_simple_client/Menu; interface=com.canonical.dbusmenu; member=Event
+   int32 5
+   string "clicked"
+   variant       int32 0
+   uint32 0
+method return time=1652170717.274636 sender=:1.184 -> destination=:1.37 serial=25 reply_serial=1447
+```
+
+_sending "closed" event_
+```
+method call time=1652170717.275973 sender=:1.37 -> destination=:1.184 serial=1448 path=/org/ayatana/NotificationItem/example_simple_client/Menu; interface=com.canonical.dbusmenu; member=Event
+   int32 0
+   string "closed"
+   variant       int32 0
+   uint32 0
+```
 
 Finally, when the user exits the python application, the appindicator library in the python application will deregister the StatusNotifierItem and the extension's watcher will pick up the deregistration and clean up the proxy app indicator along with the indicator status icon.
-
-
-We can watch the Dbus messages using `dbus-monitor`
 
 ### So can we style the app indicator's menu item?  
 
