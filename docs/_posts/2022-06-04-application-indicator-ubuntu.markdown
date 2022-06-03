@@ -1,23 +1,23 @@
 ---
 layout: post
 title: "Application Indicator in Ubuntu 20.04"
-date:   2022-04-15 17:47:48 +1300
+date:   2022-06-04 17:47:48 +1300
 --- 
 
 At my previous job, I was using [this trailer app](http://ptsochantaris.github.io/trailer/) to access and manage my github pull requests. The trailer app provides an app indicator on top of the menu bar. Clicking on the icon shows a list of pull requests along their status and the list gets automatically updated. This app is only available on MacOS.
 
 After switching to my new job, I started using Ubuntu 20.04 and I couldn't find an equivalent application. I wanted to see what it takes to create an app indicator application on Ubuntu and maybe create one myself if it's easy. 
 
-A quick google search returns a [documentation](https://wiki.ubuntu.com/DesktopExperienceTeam/ApplicationIndicators) about application indicator in Ubuntu. The documentation was written some time ago (2013-04-11 13:15:38) but it was detailed and provided some example codes. I tried out the python example but the indicator didn't appear on the UI. After a bit more googling, it turns out for Ubuntu 20.04, I needed to install  [gnome-shell-extension-appindicator](https://github.com/ubuntu/gnome-shell-extension-appindicator) to display the app indicator.
+A quick google search returns a [documentation](https://wiki.ubuntu.com/DesktopExperienceTeam/ApplicationIndicators) about application indicator in Ubuntu. The documentation was written some time ago (2013-04-11 13:15:38) but it is detailed and provided some example codes. I tried out the python example but the indicator icon didn't appear on the UI. After some more googling, it turns out for Ubuntu 20.04, I needed to install  [gnome-shell-extension-appindicator](https://github.com/ubuntu/gnome-shell-extension-appindicator) to display the app indicator.
 
-I ran the python example again and was able to get the indicator and menu to appear.
+With the extension installed, I ran the python example again and was able to get the indicator and menu to appear.
 
 <div style="text-align: center; padding-bottom: 15px">
     <img src="{{ '/assets/img/appindicator/example_appindicator.png' | relative_url }}" />
 </div>
 
 
-Next, I tried to set one of the menu label with a markup style.
+I also tried to set one of the menu label with a markup style.
 
 ```python
     test_item = Gtk.MenuItem("")
@@ -43,9 +43,9 @@ So I started digging into the details and noted my findings in the rest of this 
 
 Re-reading the official documentation, particularly on the "Software Architecture" section, I begin to see why the extension component was necessary for the python app indicator example to work.
 
-In previous versions of Ubuntu, there was a package called `indicator-applet` to display the app indicator icon and menu on the desktop UI. The menu are coming from the application through the D-Bus. This package is part of the Unity graphical shell that Ubuntu was using. However since Ubuntu 17.10, Ubuntu switched to using GNOME as the graphical shell.  [Furthermore, the official design for GNOME are moving away from having status icon as part of the user interface](https://blogs.gnome.org/aday/2017/08/31/status-icons-and-gnome/). 
+In previous versions of Ubuntu, there was a package called indicator-applet to display the app indicator icon and menu on the desktop UI. The menu are coming from the application through the D-Bus. This package is part of the Unity graphical shell that Ubuntu was using. However since Ubuntu 17.10, Ubuntu switched to using GNOME as the graphical shell.  [Furthermore, the official design for GNOME are moving away from having status icon as part of the user interface](https://blogs.gnome.org/aday/2017/08/31/status-icons-and-gnome/). 
 
-As a result, we need to install `gnome-shell-extension-appindicator` to continue to use the existing approach to create app indicator icon and menu. This is because the extension largely performs a similar functionality as `indicator-applet` described in the documentation.
+As a result, we need to install gnome-shell-extension-appindicator to continue to use the existing approach to create app indicator icon and menu. This is because the extension largely performs a similar functionality as indicator-applet described in the documentation.
 
 ### System overview
 
@@ -56,9 +56,9 @@ As a result, we need to install `gnome-shell-extension-appindicator` to continue
 
 When the python application starts, it creates an app indicator object with information such as the icon file path and the type of status icon. Then the application creates a `GtkMenu`  object and pass the menu to the app indicator. The app indicator will pass the menu to dbusmenu library and parse the `GtkMenu` object recursively to create `DbusmenuMenu` and `DbusmenuMenuItem`. After that, the app indicator will create a dbusmenu server and register a StatusNotifierItem on the D-Bus. 
 
-The D-Bus is a message bus system that is available on Ubuntu for communication between processes and applications. There is a daemon running in the background to route messages. The python application uses the D-Bus to communicate with the extension and vice versa. We can watch the D-Bus messages using `dbus-monitor` command in the terminal.
+The D-Bus is a message bus system that is available on Ubuntu for communication between processes and applications. There is a daemon running in the background to route messages. The python application uses the D-Bus to communicate with the extension and vice versa. For further information and general concepts about D-Bus, refer to [the officiial tutorial](https://dbus.freedesktop.org/doc/dbus-tutorial.html). To check the D-Bus messages exchanged for app indicator icon, we can watch the D-Bus messages using `dbus-monitor` command in the terminal. 
  
-For example, the following message are emitted to the daemon when the python application registers status notifier item on the D-Bus.
+For example, the following message was emitted to the daemon when the python application registers status notifier item on the D-Bus.
 
 
 ```console
@@ -70,12 +70,11 @@ method call time=1652169917.112493 sender=:1.184 -> destination=:1.37 serial=14 
 - The `destination` is 1.37, representing the extension.
 - The `path` is the object path where the D-Bus message is send to.
 - The `interface` is the public contract of the object on the path, indicating the members we can call on the object path.
+- The `member` is the member of the object that we are calling through this message. It could be a method that's return value or a method to emit a signal. In this case, we are calling `RegisterStatusNotifierItem` which is used to emit a signal to register the status notifier item.
 - The string value is the notification item's path that we pass in when calling `RegisterStatusNotifierItem`
 
-For more information about D-Bus, there is this [good post](https://dbus.freedesktop.org/doc/dbus-tutorial.html) around the general concepts. 
 
-
-On the other hand, `gnome-shell-extension-appindicator` have a watcher running in the background, watching for any new StatusNotiferItem on the D-Bus. Upon new StatusNotifierItem, the extension will create a proxy app indicator object and connect the proxy app indicator to the StatusNotifierItem. The proxy app indicator is used to access the app indicator information from the StatusNotifierItem.
+Next, gnome-shell-extension-appindicator have a watcher running in the background, watching for any new StatusNotiferItem on the D-Bus. Upon new StatusNotifierItem, the watcher will create a proxy app indicator object and connect the proxy app indicator to the StatusNotifierItem. The proxy app indicator is used to access the app indicator information from the StatusNotifierItem.
 
 
 _Truncated message for retrieving information on the StatusNotifierItem from the extension by calling `GetAll`_
@@ -111,7 +110,7 @@ method return time=1652169917.116081 sender=:1.184 -> destination=:1.37 serial=1
 
 The watcher also creates an indicator status icon object with a dbusmenu client. The indicator status icon object represents the app indicator icon and menu that is going to be render on the UI. The dbusmenu client connects to the dbusmenu server using the menu path from the StatusNotifierItem. Once the indicator status icon object is created, the extension will render the app indicator icon and menu on the Desktop UI.
 
-Any state changes or events on app indicator menu from the python application will sync across to the app indicator menu on the extension and vice versa. This occurs in the communication betweeen the dbusmenu server and dbusmenu client. For example, when I open up the menu by clicking on the icon then clicking on one of the item and closing menu. There are messages for each of the events.
+Any state changes or events on app indicator menu from the python application will sync across to the extension and vice versa. This occurs in the communication betweeen the dbusmenu server and dbusmenu client. For example, when I open up the menu by clicking on the icon then clicking on one of the items and closing menu. There are messages for each of the events.
 
 
 _sending "opened" event to the python application from the extension and triggering "AboutToShow" hooks_
@@ -164,7 +163,7 @@ This means if the menu's label that we are passing to the extensions contains ma
 
 To make the markup styling appear on the app indicator menu, one approach is to modify the extension and the dbusmenu library to allow styling to be passed through. However, that requires changing multiple components and maintaining these modified libraries.
 
-Another option is to use [gjs](https://gjs.guide/) to build out the app indicator application from scratch. It is a fully featured javascript sdk to build GUI application for GNOME desktop and have amazing support for styling the UI. Furthermore, the extension is already built with gjs, this means we can build our own custom application with app indicator icon.
+Another option is to use [gjs](https://gjs.guide/) to build out the app indicator application from scratch. It is a fully featured javascript sdk for building GNOME desktops GUI application and have amazing support for styling the UI. Furthermore, the extension is already built with gjs, this means we can build our own custom app indicator icon application.
 
 Lastly, we can also use the non-styled app indicator menu to open up a window that allows us to fully customise the style and the content within the window. For example, jetbrain's toolbox application have this behaviour.
 
