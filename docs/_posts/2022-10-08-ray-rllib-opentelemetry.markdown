@@ -31,7 +31,7 @@ Early stopping at step 10 due to reaching max kl: 0.015266045928001404
 2022-09-26 10:43:08,620 — train_ppo — INFO — return: -21.176, ep_len: 15.686 win rate: 0.265 ep_hands_played: 27.329 ep_games_played: 245, 
 ```
 
-The default RLlib metric didn't indicates how long it spent sampling the environment. Before Ray v2.0, it provided `sample_time_ms` but the value doesn't make sense if we add it together wth `learn_time_ms`. This is because the sum didn't equal to the `training_iteration_time_ms`.
+The default RLlib metric didn't indicates how long it spent sampling the environment. Before Ray v2.0, it provided `sample_time_ms` but the value doesn't make sense if we add it together with `learn_time_ms` as the sum didn't equal to the `training_iteration_time_ms`.
 
 Fortunately, [Ray allows us to instrument the framework using OpenTelemetry](https://docs.ray.io/en/latest/ray-observability/ray-tracing.html) so we can generate traces and get a better understanding of the underlying operations. 
 
@@ -69,7 +69,7 @@ def setup_tracing() -> None:
 
 ```
 
-The setup function will be executed when initialising each local/remote Ray worker. It will configure the span processor and traces exporter. In the above example, it is configured to send the traces to a local Jaeger instances. The local Jaeger instance is created through a [docker-compose.yaml](https://github.com/Wal8800/card-games/blob/main/docker-compose.yaml) and we can view the traces at `localhost:16686` from Jaeger web interface.
+The setup function will be executed when initialising each local/remote Ray worker. It will configure the span processor and traces exporter. In the above example, it is configured to send the traces to a local Jaeger instances. The local Jaeger instance is created through a [docker-compose.yaml](https://github.com/Wal8800/card-games/blob/main/docker-compose.yaml) and we can view the traces at `localhost:16686` from the Jaeger web interface.
 
 Next, we can start a new span and run the PPO training after the `ray.init`. For example:
 
@@ -122,7 +122,7 @@ After the training run is completed, we can go to the Jaeger web interface and v
 
 - There are 4 `RolloutWorker.sample.ray.remote_worker` spans running at the same time. This indicates there are 4 workers sampling in parallel which matches with the training configuration. 
   
-- The sampling occurred in two rounds (the green box and the red box) because the rollout fragment (the amount of step collected per worker) is set to 512 steps and the train batch size is set 4096. So in a single round, it collects 2048 steps (512 steps * 4 workers) therefore two rounds would satisfy the train batch size.
+- The sampling occurred in two rounds (the green box and the red box) because the rollout fragment (the amount of steps collected per worker) is set to 512 steps and the train batch size is set 4096. So in a single round, it collects 2048 steps (512 steps * 4 workers) therefore two rounds would satisfy the train batch size.
   
 - The sampling span `RolloutWorker.sample.ray.remote` duration is shorter than it's child span `RolloutWorker.sample.ray.remote_worker`. Most likely due to asynchronous execution where the sampling span was the function that triggers the worker and exit after triggering the worker. The worker continues to sample until it meets the sampling target.  
 
@@ -153,7 +153,7 @@ class TracedPPO(PPO, ABC):
                     max_env_steps=self.config["train_batch_size"],
                 )
 
-    # other code in the function are excluded for demostration purposes.
+    # other codes in the function are excluded for demostration purposes.
 ```
 
 _For the full example refer to this [file](https://github.com/Wal8800/card-games/blob/main/ray_runner/multi_agent_bigtwo_runner.py)._
@@ -193,14 +193,14 @@ We can add more instrumentations in the training step by creating a custom `trai
 
 
 - Looks like `train_one_step` is comprises of multiple sgd update iterations. 
-- Each sgd update is relatively fast but if there are many iterations then time taken adds up. There are always 80 iterations under the custom `do_minibatch_sgd` function.
+- Each sgd update is relatively fast but if there are many iterations then the time taken adds up. There are always 80 iterations under the custom `do_minibatch_sgd` function.
 
 With this view, we can see any impacts on time taken when changing the configurations or customising the implementation for RLlib PPO training. 
 
 
 ## Observations
 
-After comparing implementation, changing configuration, and checking the training time on the Jaeger web interface, there are two main drivers of longer training time.
+After comparing implementation, changing configuration, and checking the training time on the Jaeger web interface, I notice there are two main drivers of longer training time in the RLib PPO training.
 
 ### Eager tracing not enabled
 
@@ -216,7 +216,7 @@ After enabling eager tracing , the time taken improvements are:
 
 ### Early stopping on large KL divergence
 
-In self implemented PPO training, it contains early stopping logic for updating the policy network when the mean KL divergence is greater than a specified threshold. This is because my implementation is based on the [Spinning Up implementation](https://spinningup.openai.com/en/latest/algorithms/ppo.html) and they used this additional mechanism to ensure the new policy doesn't stray too far from the old policy.
+In the self implemented PPO training, it contains early stopping logic for updating the policy network when the mean KL divergence is greater than a specified threshold. This is because my implementation is based on the [Spinning Up implementation](https://spinningup.openai.com/en/latest/algorithms/ppo.html) and they used this additional mechanism to ensure the new policy doesn't stray too far from the old policy.
 
 In the self implemented PPO training, the number of update iteration is set to 80. However, often times, the number of iteration that get executed is significiant less than 80 due to early stopping, usually around less than 10 update iterations. 
 
@@ -224,7 +224,7 @@ On the other hand, when I first tried RLlib PPO training, I kept the training hy
 
 To enable early stopping in RLlib PPO training, I need to change the existing RLlib PPO training logic. Fortunately, I'm already customising the `do_minibatch_sgd` function to enable spans so I can implement the same early stopping logic in there as well. After training with early stopping, the number of iteration drops to ~30 iterations and reduces the time taken for updating the agent. However, the number of iterations are still more than the self implemented PPO training. 
 
-After further investigation,  it looks like RLlib PPO implementation uses [both KL penalty and clipping simultaneously](https://github.com/ray-project/ray/issues/13837) where as my implementation only uses clipping. Potentially, for the RLlib PPO implementation, the mean KL divergence between old policy to new policy in a single update iteration is relatively less than my PPO implementation therfore RLlib PPO training performs more iteration until it reached the same early stopping threshold.
+After further investigation,  it looks like RLlib PPO implementation uses [both KL penalty and clipping simultaneously](https://github.com/ray-project/ray/issues/13837) where as my implementation only uses clipping. Potentially, for the RLlib PPO implementation, the mean KL divergence between old policy to new policy in a single update iteration is relatively less than my PPO implementation therefore RLlib PPO training performs more iteration until it reached the same early stopping threshold.
 
 For now, I'm going to set the number of iteration to 30 to keep the time taken improvement. Then further experiment to understand the impact on the game play performance.
 
@@ -235,6 +235,6 @@ For now, I'm going to set the number of iteration to 30 to keep the time taken i
     <figcaption style="text-align: center; font-style: italic;">Figure 5: Spans after adjustments</figcaption>
 </div>
 
-After enabling eager tracing and changing the number of update iteration to a lower value, the time to train a single epoch is much faster now. Especially for `train_one_step`, the time taken decrease from ~22 seconds to ~7 seconds.  
+After enabling eager tracing and changing the number of update iteration to a lower value, the time to train a single epoch is much faster now. Especially for `train_one_step`, the time taken decreases from ~22 seconds to ~7 seconds.  
 
-The RLlib PPO agent update is relatively slower than self implemented PPO training. However, due to the faster sampling in RLlib, the overall RLlib PPO training is at least the same or faster than self implemented PPO training. Furthermore, from initial experiments, the agent trained from RLlib PPO is peforming better (in terms of win rates) compared to self implemented PPO training when trained with the same number of epoch.
+The RLlib PPO agent update is relatively slower than self implemented PPO training. However, due to the faster sampling in RLlib, the overall RLlib PPO training is at least the same or faster than self implemented PPO training. Furthermore, from initial experiments, the agent trained from RLlib PPO is performing better (in terms of win rates) compared to self implemented PPO training when trained with the same number of epoch.
