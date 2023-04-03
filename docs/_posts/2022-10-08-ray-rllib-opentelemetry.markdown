@@ -153,7 +153,7 @@ class TracedPPO(PPO, ABC):
                     max_env_steps=self.config["train_batch_size"],
                 )
 
-    # other codes in the function are excluded for demostration purposes.
+    # other codes in the function are excluded for demonstration purposes.
 ```
 
 _For the full example refer to this [file](https://github.com/Wal8800/card-games/blob/main/ray_runner/multi_agent_bigtwo_runner.py)._
@@ -180,9 +180,9 @@ Now it shows a span to indicate the previous missing gap.
 </div>
 
 
-- Previous sampling spans are now grouped together under `synchronous_paralle_sample` and we can see the total time spent in sampling.
+- Previous sampling spans are now grouped together under `synchronous_parallel_sample` and we can see the total time spent in sampling.
 - The bottleneck is at the `train_one_step`  step like `learn_time_ms` indicated. Looking at the code, the `learn_time_ms` metric is actually measured within the train one step functions.
-- Other steps such as `standardize_fields` and `sync_weights` are negilible in terms of time taken.
+- Other steps such as `standardize_fields` and `sync_weights` are negligible in terms of time taken.
 
 We can add more instrumentations in the training step by creating a custom `train_one_step` and `do_minibatch_sgd` function. Then we can see what it is doing.
 
@@ -218,9 +218,9 @@ After enabling eager tracing , the time taken improvements are:
 
 In the self implemented PPO training, it contains early stopping logic for updating the policy network when the mean KL divergence is greater than a specified threshold. This is because my implementation is based on the [Spinning Up implementation](https://spinningup.openai.com/en/latest/algorithms/ppo.html) and they used this additional mechanism to ensure the new policy doesn't stray too far from the old policy.
 
-In the self implemented PPO training, the number of update iteration is set to 80. However, often times, the number of iteration that get executed is significiant less than 80 due to early stopping, usually around less than 10 update iterations. 
+In the self implemented PPO training, the number of update iteration is set to 80. However, often times, the number of iteration that get executed is significant less than 80 due to early stopping, usually around less than 10 update iterations. 
 
-On the other hand, when I first tried RLlib PPO training, I kept the training hyperparameters the same. This means the the number of update iteration `num_sgd_iter` is set to 80. Since the RLlib PPO implementation doesn't have early stopping, it always ran 80 update iterations. As a result, this contributes to making the RLlib PPO training taking longer than the self impemented PPO training.
+On the other hand, when I first tried RLlib PPO training, I kept the training hyperparameters the same. This means the the number of update iteration `num_sgd_iter` is set to 80. Since the RLlib PPO implementation doesn't have early stopping, it always ran 80 update iterations. As a result, this contributes to making the RLlib PPO training taking longer than the self implemented PPO training.
 
 To enable early stopping in RLlib PPO training, I need to change the existing RLlib PPO training logic. Fortunately, I'm already customising the `do_minibatch_sgd` function to enable spans so I can implement the same early stopping logic in there as well. After training with early stopping, the number of iteration drops to ~30 iterations and reduces the time taken for updating the agent. However, the number of iterations are still more than the self implemented PPO training. 
 
