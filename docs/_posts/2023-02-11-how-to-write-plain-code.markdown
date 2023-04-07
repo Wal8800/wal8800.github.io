@@ -215,13 +215,13 @@ Rewrite the sentence if there are too many useless words in the sentence and app
 
 Similarly in coding, we want to write codes that the reader can quickly understand. The above tips cut out the redundant part of the sentence and aims to deliver the main points in the most concise way. This strategy is applicable to coding, we want to deliver the behaviour of the code to reader in the most concise way as possible.
 
-This brings the questions of what is concise in coding? Does it mean packing logic into a single line? Not necessarily, from my experiences, I think it's the usefulness of each line of code and whether the current form is the best representation for the logic. 
+This brings the questions of what is concise in coding? Does it mean packing logic into a single line? Not necessarily, from my experiences, I think it's the usefulness of the code and whether the current form is the efficient representation for the logic in terms of readability. Assuming the performance of the code is at least the same or better when we are modifying the code to be more precise.  
 
 Deriving from the above tips and my past experiences, I can think three different approach to help us write code more concisely. They are:
 
 - Remove codes that's aren't serving a purpose
 - Simplify logic
-- Refactor the code structure
+- Refactor the function
 
 Let's have a look at each one with some examples.
 
@@ -233,22 +233,7 @@ Just like the "strike out useless words" and the "shortening wordy prepositional
 
 Fortunately, modern IDEs, code editors and linters are awesome at highlighting these useless lines of code. Some languages like Golang doesn't allow you to compile the program if there are unused variables.
 
-There are some cases where the line of code doesn't serve a significant purpose and can be remove with a small tweak. Here are two examples related to variable assignment.
-
-**Directly return the result in the function**
-
-_before_
-```python
-def sum(a: int, b: int) -> int:
-  result = a + b
-  return result
-```
-
-_after_
-```python
-def sum(a: int, b: int) -> int:
-  return a + b
-```
+There are some cases where the line of code doesn't serve a significant purpose and can be remove with a small tweak. For example:
 
 **Use the value without assignment if the value is only used in 1 place**
 
@@ -264,7 +249,7 @@ _after_
 person = Person(payload["name"], payload["age"])
 ```
 
-The value assignment in these two specific examples doesn't add to the functionality so we can remove them and directly use the value. There are scenario where value assignment that doesn't add to the functionality but improve the readability. For example, breaking down complex boolean condition.
+The value assignment in above example doesn't add to the functionality so we can remove them and directly use the value. There are scenario where value assignment that doesn't add to the functionality but improve the readability. For example, breaking down complex boolean condition.
 
 ```python
 is_valid = a and (b or c)
@@ -281,25 +266,6 @@ It's important to ask ourselves the purpose of each line when writing the code t
 #### Simplify logic
 
 There are times when we can restructure the logic or leverage some language features to simplify the logic. This is similar to "prune the dead wood, grafting on the vigorous", where we replace a verbose block of code with a simpler version that performs the same functionality. Simplifying the logic helps us to be more concise as we are able to express the logic with less noise. Here are some examples:
-
-**Directly return the boolean condition**
-
-The if else structure is not needed since we can directly use the if statement condition as the return value.
-
-_before_
-```python
-def is_bad_fruit(fruit) -> bool:
-  if not fruit.is_sweet or not fruit.has_seeds:
-    return True
-  else:
-    return False
-```
-
-_after_
-```python
-def is_bad_fruit(fruit) -> bool:
-  return not fruit.is_sweet or not fruit.has_seeds:
-```
 
 **Using list comprehension in Python**
 
@@ -324,52 +290,6 @@ result = [
 ```
 
 Some of these scenarios can be picked up by linters as they perform static code analysis on the source code. For example, Pylint has a [refactoring checker](https://pylint.pycqa.org/en/2.4/technical_reference/features.html#refactoring-checker) that can make suggestions like using list comprehension or chained comparison. Golangci-lint have a [gosimple](https://github.com/dominikh/go-tools/tree/master/simple) linter that can suggests removing unnecessary if statement checks and using standard library functions.
-
-
-#### Refactor the code structure
-
-Something about restructure, so we don't need pass a lot of argument and creating unnecessary dataflow. 
-
-**Passing only the fields used in the function**
-
-_before_
-```python
-def do_something(config: Config):
-  a = b + c
-  if config.enabled:
-      a += d
-
-  return a
-```
-
-_after_
-```python
-def do_something(enabled: bool):
-  a = b + c
-  if enabled:
-      a += d
-
-  return a
-```
-
-**Moving logic to separate function**
-
-Extract block of code to a separate function when the abstraction make senses.
-
-```python
-def do_something():
-
-```
-
-```python
-def do_something():
-
-```
-
-As to what logic to refactor or extract to a separate function, it's a whole different topic that I won't go into here. I would recommend to read the following books to help guide your thinking: 
-
-- Refactoring: Improving the Design of Existing Code
-- A Philosophy of Software Design
 
 
 ## Conclusion
