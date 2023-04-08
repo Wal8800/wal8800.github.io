@@ -197,7 +197,7 @@ We want to write concisely so the reader can quickly understand the main points 
 
 **Strike out useless words**
 
-Sometimes sentence are padded with repetitive words and ideas. For example, from the book, "The cheque that was received from Classic Assurance was received on 13 January". "was received" are repeated so we can get rid of one of them and the examples becomes "The cheque from Classic Assurance came on 13 January".
+Remove repetitive words and unnecessary courteous phrase in the sentence. For example, from the book, "The cheque that was received from Classic Assurance was received on 13 January". "was received" are repeated so we can get remove one of them and the example becomes "The cheque from Classic Assurance came on 13 January".
 
 **Prune the dead wood, grafting on the vigorous**
 
@@ -213,43 +213,33 @@ Rewrite the sentence if there are too many useless words in the sentence and app
 
 ### Coding concisely
 
-Similarly in coding, we want to write codes that the reader can quickly understand. The above tips cut out the redundant part of the sentence and aims to deliver the main points in the most concise way. This strategy is applicable to coding, we want to deliver the behaviour of the code to reader in the most concise way as possible.
+Similarly in coding, we want to write concise codes so that the reader can quickly understand. What is concise code? From my experiences, I think it is code that has a clear intended purpose. It satisfies technical and non technical requirements such readability and performance. Furthermore, the current form is the most efficient and effective representation for the logic. This means not necessarily the shortest code i.e. 1 liner but long enough to clearly express the logic in a readable fashion.
 
-This brings the questions of what is concise in coding? Does it mean packing logic into a single line? Not necessarily, from my experiences, I think it's the usefulness of the code and whether the current form is the efficient representation for the logic in terms of readability. Assuming the performance of the code is at least the same or better when we are modifying the code to be more precise.  
+The concept of concise code is applicable at every layer of the code base. Ranging from a single function, codes that integrates different modules together and codes that models the data and domain specific concepts. There could be some redundant and repetitive code in different area of the code base.
 
-Deriving from the above tips and my past experiences, I can think three different approach to help us write code more concisely. They are:
+Given the broad scope, I'm limiting the discussion and examples to the codes within a single function because the blog post will be very long if we were to discuss the other scenarios.
 
-- Remove codes that's aren't serving a purpose
-- Simplify logic
-- Refactor the function
-
-Let's have a look at each one with some examples.
-
-I'm limiting the discussion and examples to function level because the blog post will be very long if we were to discuss how we try to structure the code base and data representation concisely.
+How can we write concise code within a function? The above tips for English cut out the redundant part of the sentence and aims to deliver the main points in the most concise and effective way. Deriving from these tips, I can think of two general approach to help us write code more concisely. Let's have a look at each one with some examples.
 
 #### Remove codes that aren't serving a purpose
 
-Just like the "strike out useless words" and the "shortening wordy prepositional" approach, we want to remove any line of codes that doesn't add any functionality or readability to the function. For example, unused variables, unused argument and dead code path. These lines of code often introduce more questions and confusion for the developer when they read the code as they need to figure out the purpose of these lines. These lines distract the developer from building the main mental model of the code block while they are reading the code.
+Just like "strike out useless words" and "shortening wordy prepositional", we want to remove any lines that doesn't contributes in the function. For example, unused variables, unused arguments and dead code paths. These lines of code often introduce more questions and confusion for the developer when they read the code as they need to figure out the purpose of these lines. These lines distract the developer from building a good mental model of the code.
 
-Fortunately, modern IDEs, code editors and linters are awesome at highlighting these useless lines of code. Some languages like Golang doesn't allow you to compile the program if there are unused variables.
+Fortunately, modern IDEs, code editors and linters are awesome at highlighting these useless lines of code. Some languages like Golang doesn't allow you to compile the program if there are unused variables. However, there are some cases where it's not highlighted by the tooling and the line of code doesn't serve a significant purpose. For example:
 
-There are some cases where the line of code doesn't serve a significant purpose and can be remove with a small tweak. For example:
-
-**Use the value without assignment if the value is only used in 1 place**
-
-_before_
 ```python
 name = payload["name"]
 age = payload["age"]
 person = Person(name, age)
 ```
 
-_after_
+In the above code snippet, we retrieve values from the payload map and assign them to variables. Then passing the variable to constructor to create an object. If those variables are not used afterward, then the value assignment is not useful. We can remove the variables and directly use the map retrieval expression to pass to the constructor.
+
 ```python
 person = Person(payload["name"], payload["age"])
 ```
 
-The value assignment in above example doesn't add to the functionality so we can remove them and directly use the value. There are scenario where value assignment that doesn't add to the functionality but improve the readability. For example, breaking down complex boolean condition.
+There are scenario where value assignment that doesn't add to the functionality but improves the readability. For example, breaking down complex boolean condition.
 
 ```python
 is_valid = a and (b or c)
@@ -258,20 +248,15 @@ is_current = e or d
 if is_valid and is_current
 ```
 
-Grouping the boolean condition with variable assignments provide a way to create semantic meaning for these boolean conditions. This should increase the clarity of the if statement compared to having all the boolean variable in a single if statement condition. Arguably this could hide opportunities to simplify the condition but that's depend on how we group the conditions.
+Grouping the boolean condition with variable assignments provide a way to create semantic meaning for these boolean conditions. This can increases the clarity of the if statement compared to having all the boolean variables in a single if statement condition. Although, this could hide opportunities to simplify the condition but that's depend on how we group the conditions.
 
-It's important to ask ourselves the purpose of each line when writing the code to make sure they are there for a reason. If the line of code doesn't have a significant reason to exists then we should get remove them.
+I think when writing code, we should ask why each line is there. If a line doesn't have a clear purpose, we should remove it.
 
 
 #### Simplify logic
 
-There are times when we can restructure the logic or leverage some language features to simplify the logic. This is similar to "prune the dead wood, grafting on the vigorous", where we replace a verbose block of code with a simpler version that performs the same functionality. Simplifying the logic helps us to be more concise as we are able to express the logic with less noise. Here are some examples:
+Sometimes when we can restructure the logic or leverage some language features to simplify the logic. This is similar to "prune the dead wood, grafting on the vigorous", where we replace a verbose block of code with a simpler version that performs the same functionality. Simplifying the logic helps us to be more concise as we are able to express the logic with fewer lines, keywords or function calls. For example:
 
-**Using list comprehension in Python**
-
-While the _before_ approach works, it's not the most idiomatic python code. We can use list comprehension to construct the list by iterating through `exam_scores` and conditionally choose the values, this avoids calling `.append` after the list is created. 
-
-_before_
 ```python
 result = []
 for score in exam_scores:
@@ -281,12 +266,30 @@ for score in exam_scores:
     result.append("fail")
 ```
 
-_after_
+The above code snippet creates a filter list by iterating through exam scores and conditionally add the element the result list. This approach works but it's not the most idiomatic python code. We can use list comprehension to construct the list by iterating through `exam_scores` and conditionally choose the values, this avoids calling `.append` after the list is created. 
+
 ```python
 result = [
   "pass" if score >= 40 else "fail" 
   for score in exam_scores
 ]
+```
+
+Here is another example:
+
+```python
+def is_bad_fruit(fruit) -> bool:
+  if not fruit.is_sweet or not fruit.has_seeds:
+    return True
+  else:
+    return False
+```
+
+The if else structure is useless since we can use the if statement condition as the return value.
+
+```python
+def is_bad_fruit(fruit) -> bool:
+  return not fruit.is_sweet or not fruit.has_seeds:
 ```
 
 Some of these scenarios can be picked up by linters as they perform static code analysis on the source code. For example, Pylint has a [refactoring checker](https://pylint.pycqa.org/en/2.4/technical_reference/features.html#refactoring-checker) that can make suggestions like using list comprehension or chained comparison. Golangci-lint have a [gosimple](https://github.com/dominikh/go-tools/tree/master/simple) linter that can suggests removing unnecessary if statement checks and using standard library functions.
