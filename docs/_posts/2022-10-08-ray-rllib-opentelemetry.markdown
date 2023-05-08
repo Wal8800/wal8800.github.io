@@ -4,7 +4,7 @@ title: "Ray RLlib and OpenTelemetry"
 date:   2022-10-08 17:00:48 +1300
 --- 
 
-*This blog post assumes the reader have basic understanding of reinforcement learning and PPO algorithm. Recommended to read: [https://spinningup.openai.com/en/latest/algorithms/ppo.html]()*
+*This blog post assumes the reader have basic understanding of reinforcement learning and PPO algorithm. Recommended to read: [https://spinningup.openai.com/en/latest/algorithms/ppo.html](https://spinningup.openai.com/en/latest/algorithms/ppo.html)*
 
 ## Problem
 
