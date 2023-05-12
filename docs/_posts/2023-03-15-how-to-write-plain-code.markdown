@@ -5,23 +5,21 @@ date:   2023-03-15 17:47:48 +1300
 categories: jekyll update
 ---
 
-Looking to improve the clarity of my technical writing, I read "Oxford Guide to Plain English". The book provides different guidelines to help people to write in Plain English. It also uses the definition of Plain English from [Plain Language Association International](https://plainlanguagenetwork.org/plain-language/plain-language-around-the-world/). Plain English is defined as "A communication is in plain language if its wording, structure, and design are so clear that the intended audience can easily find what they need, understand what they find, and use that information."
- 
-This definition can be apply to programming code as well. For example, a piece of code could be plain code if they are so clear that the developer can easily navigate and understand what the code is doing. However, there is an important difference between programming codes and natural languages like English. For a piece of English text, once written and published, the text will be mostly read only. On the other hand, for a code base, it will be read and modify through out it's life time. As a result, if we were to define what plain code is, we need to consider what impacts should plain code have on modifying the code.
+Looking to improve the clarity of my technical writing, I read "Oxford Guide to Plain English". The book provides different guidelines to help people to write in Plain English. It uses the definition of Plain English from [Plain Language Association International](https://plainlanguagenetwork.org/plain-language/plain-language-around-the-world/). Plain English is defined as "A communication is in plain language if its wording, structure, and design are so clear that the intended audience can easily find what they need, understand what they find, and use that information."
 
-If plain code allows the developer to easily navigate the code and builds an understanding then it should enable the developer to easily know where and how to make changes. This is because it will be a natural extension after building an understanding of the codes, corresponding to the "use that information" part from the Plain English definition.
+As I read the book, I find the definition and some of the guidelines to be applicable for programming code. In this blog post, we will explore what does plain code means and try to apply some of the Plain English guidelines.
 
-What about the difficulty of the changes? 
+## What is plain code
 
-HR HW HC
-ER HW HC
-ER EW HC
-ER EW EC
+A piece of code could be plain code if they are so clear that the developer can easily navigate and understand what the code is doing. However, there is an important difference between programming codes and natural languages like English. For a piece of English text, once written and published, the text will mostly be read only. On the other hand, for a code base, it will be read and modify through out it's life time. As a result, we need to consider what impacts should plain code have on modifying the code.
 
-**Summarising the points, plain code is**
+If plain code allows the developer to easily navigate the code and builds a good understanding then the developer should be able to leverage their understanding to know where and how to make changes. Furthermore, plain code should be relatively easier to make the right changes, given that from our good understanding, we know the potential impact of the changes. This means we can come up with a plan to deal with the known issues, mitigate potential risks, and avoid negative consequences.
 
+Does plain code also means reducing the amount of changes needed to meet the new requirement? I think it's mostly depended on the existing implementation. If the existing implementation is not built to be extended for the new requirement then there will be relatively more changes. Requiring less changes for a new requirement is a result of extendable code and I would argue plain code and extendable code are two independent properties. Plain code aims to improve the clarity and readability by having clear structure and design. Whereas extendable code are looking forward to the potential use cases and creating a design that caters to the current and possible future requirements. It's possible to have code that have obscure design and structure but once you finally understand the code, you realise the existing implementation can extends to fit the new use with minimal changes.
 
-Based this definition, I found some of the guidelines for Plain English to be helpful for writing plain code, let's have a look at how we can apply them.
+Coming back to the definition of plain code, putting it together, **code is in plain code if it's structure and design are so clear that the developer can easily find what they need, understand what they find and make the changes that they want.**
+
+Based on this definition, let's have a look at applying some of the guidelines to help write in plain code.
 
 ## Converting negative to positive
 
