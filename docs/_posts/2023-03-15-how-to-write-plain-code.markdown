@@ -11,23 +11,23 @@ As I read the book, I find the definition and some of the guidelines to be appli
 
 ## What is plain code
 
-A piece of code could be plain code if they are so clear that the developer can easily navigate and understand what the code is doing. However, there is an important difference between programming codes and natural languages like English. For a piece of English text, once written and published, the text will mostly be read only. On the other hand, for a code base, it will be read and modify throughout its lifetime. As a result, we need to consider what impacts should plain code have on modifying the code.
+Deriving from the plain language definition, a piece of code is plain code if the structure and design is so clear that the developer can easily navigate and understand what the code is doing. However, there is an important difference between programming codes and natural languages like English. For a piece of English text, once written and published, the text will mostly be read only. On the other hand, for a code base, it will be read and modified throughout its lifetime. As a result, we need to consider what plain code means for modification.
 
 If plain code allows the developer to easily navigate the code and builds a good understanding then the developer should be able to leverage their understanding to know where and how to make changes. Furthermore, plain code should be relatively easier to make the right changes, given that from our good understanding, we know the potential impact of the changes. This means we can come up with a plan to deal with the known issues, mitigate potential risks, and avoid negative consequences.
-q
-Does plain code also mean reducing the amount of changes needed to meet the new requirement? I think it mostly depended on the existing implementation. If the existing implementation is not built to be extended for the new requirement then there will be relatively more changesq 
 
-Requiring less changes for a new requirement is a result of extendable code and I would argue plain code and extendable code are two independent properties. Plain code aims to improve the clarity and readability by having clear structure and design. Whereas extendable code is looking forward to the potential use cases and creating a design that caters to the current and possible future requirements. It's possible to have code that has obscure design and structure but once you finally understand the code, you realise the existing implementation can extend to fit the new use with minimal changes.
+Also, does plain code mean reducing the amount of changes needed to meet the new requirement? I think it mostly depended on the existing implementation. If the existing implementation is not built to be extended for the new requirement then there will be relatively more changes.
+
+Requiring less changes for new requirements is a result of extendable code. I would argue plain code and extendable code are two independent properties. Plain code aims to improve the clarity and readability by having clear structure and design. Whereas extendable code is looking forward to the potential use cases and creating a design that caters to the current and potential future requirements. It's possible to have code that has obscure design and structure but once you finally understand it, you realise the existing implementation can be extended to fit the new use with minimal changes.
 
 Coming back to the definition of plain code, putting it together, **code is in plain code if its structure and design are so clear that the developer can easily find what they need, understand what they find and make the changes that they want.**
 
-Based on this definition, let's have a look at applying some of the guidelines to help write in plain code.
+Now, let's have a look at applying some of the guidelines to help write in plain code.
 
 ## Converting negative to positive
 
 The book recommends using positive phrases over negative phrases and only uses negative when it is necessary. For example, "Vote for only one candidate only" instead of "Vote for no more than one candidate". For negative phrases, people often need to perform extra mental work as they need to figure out the positive meaning first. By favouring positive phrases, it reduces the amount of mental work and increases clarity.
 
-For coding, we can favour positive phrases when naming function and variable if it's suitable to the application context. More importantly, I think it's the idea of reducing mental work that can help developers to understand the code quicker. I often find myself simplifying boolean conditions to reduce the mental work for the reader when reading boolean conditions.
+For coding, we can favour positive phrases when naming function and variable if it's suitable to the application context. More importantly, it's the idea of reducing mental work that can help developers to understand the code quicker. I often find myself simplifying boolean conditions to reduce the mental work for the reader when reading boolean conditions.
 
 For example, if you have a nested boolean condition:
 
@@ -78,11 +78,11 @@ There are a lot of existing frameworks and patterns that provide structure to bu
 Under the hood, these frameworks may be using patterns such as [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) or [MVVM](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) to separate codes that have different concerns. Then once we get into the application code, depending on the functionality, developers can use patterns such as [Strategy pattern](https://en.wikipedia.org/wiki/Strategy_pattern) to alter application behaviour during runtime or [Observer pattern](https://en.wikipedia.org/wiki/Observer_pattern) to create one to many dependency without tightly coupling the objects.
 
 
-Using these frameworks and patterns helps the developer to navigate the code, build an understanding and make potential changes. For example, separating the code of different concerns with MVC allows the developer to know where to look for the view, model and controller logic. On other hand, using established patterns like the Observer pattern, allows the developer to quickly understand how dependency between objects are managed and make changes to it if they need to.
+These frameworks and patterns helps the developer to navigate the code, build an understanding and make potential changes. For example, separating codes of different concerns with MVC allows the developer to know where they should make model changes. On other hand, using established patterns like the Observer pattern, allows the developer to quickly understand how dependency between objects are managed and make changes to it if they need to.
 
 Just like the example structures for English, these frameworks and patterns aim to solve a specific problem. Are there generic structures that we can apply to our code to improve the clarity and readability?
 
-From my experience, there are some ideas that I would use to structure code within a function to improve clarity and readability. These ideas are not specific to a particular solution or functionality. They are lower level ideas of arranging logic within a function. I found them particularly useful when the function is long and contains various different logic. In the next few sections, we will explore these ideas.
+From my experience, there are some ideas that I would use to structure code within a function to improve clarity and readability. These ideas are not specific to a particular solution or functionality. They are particularly useful when the function is long and contains various different logic. In the next few sections, we will explore these ideas.
 
 **Organise the lines in the function into logical blocks**
 
@@ -153,7 +153,7 @@ def pack_fruits(basket, fruits):
 ```
 
 
-If we return early in the function, we can improve its clarity. In the _after_ example, the if condition is inverted, once the condition is true, it will trigger the edge case handling logic and exit the function. By using this approach, we can improve the flow of reading the function. Going from top to bottom, the developer reads each self-contained block of error condition and handling logic then they can move onto reading the main processing logic. This provides a clear structure of how the function is laid out.
+If we return early in the function, we can improve its clarity. In the _after_ example, the if condition is inverted, once the condition is true, it will trigger the error case handling logic and exit the function. By using this approach, we can improve the flow of reading the function. Going from top to bottom, the developer reads each self-contained block of error condition and handling logic then they can move onto reading the main processing logic. This provides a clear structure of how the function is laid out.
 
 Additionally, returning early helps to reduce indentation of the logic in the function. The processing logic and second if statement block are no longer indented. They can have more space to express each line of logic and more descriptive variable names.
 
@@ -186,11 +186,11 @@ def predict_fruit(image):
   # post processing on the model result to derive the fruit
 ```
 
-The comments should be a high level description of what needs to be done and arrange the comments in logical order. For example, having cheap validation steps before expensive query or data creation logic to avoid extra computation.
+The comments should be a high level description of what needs to be done and arrange the comments in logical order. For example, having validation steps before expensive query or data creation logic to avoid extra computation.
 
 This approach provides opportunities for us to think about what is needed in the function. Furthermore, it encourages reasoning about the overall structure of the function upfront. Once we are happy with the high level comments, we can fill in the implementation under each comment.
 
-After the implementation is done, we can remove the comments. In some cases, those comments can become a high level summary for the related code block. For instances:
+After the implementation is done, we can remove the comments. In some cases, those comments can become a high level summary for the related code block. For example:
 
 ```python
 # prepare fruits to be served on a plate.
@@ -200,7 +200,7 @@ for fruit in fruits:
   slice_fruit(fruit)
 ```
 
-The comment regarding the for loop allows us to understand what the loop is doing without reading the logic. This increases clarity of the logic if the loop is doing multiple things at once and it's unclear at a glance the overall purpose of the loop.
+The comment regarding the for loop allows us to understand what the loop is doing without reading the logic. This increases clarity of the logic if the loop is doing multiple things at once and it's unclear at a glance the loop's overall purpose.
 
 ## Writing Concisely
 
@@ -216,7 +216,7 @@ In English, we want to write concisely so the reader can quickly understand the 
 
 ### Coding concisely
 
-Similarly in coding, we want to write concise codes so that the reader can quickly understand. What is concise code? I think it is code that has a clear intended purpose. It satisfies technical and non technical requirements such as readability and performance. Furthermore, the current form is the most efficient and effective representation for logic. This means not necessarily the shortest code like all the logic in a single line but long enough to clearly express the logic in a readable fashion.
+Similarly in coding, we want to write concise codes so that the reader can quickly understand. What is concise code? I think it is code that has a clear intended purpose. It satisfies technical and non technical requirements such as readability and performance. Furthermore, it should be the most efficient and effective representation for logic. This means not necessarily the shortest code like all the logic in a single line but long enough to clearly express the logic in a readable fashion.
 
 The concept of concise code is applicable at every layer of the code base. Ranging from a single function, codes that integrate different modules together and codes that models the data and domain specific concepts. Given the broad scope, I'm limiting the discussion and examples to the codes within a single function.
 
@@ -224,9 +224,9 @@ How can we write concise code at the function level? The above tips for Plain En
 
 #### Remove codes that aren't serving a purpose
 
-Just like "strike out useless words" and "shortening wordy prepositional", we want to remove any lines of code that don't contribute to the function. For example, unused variables, unused arguments and dead code paths. These lines of code often introduce more questions and confusion to the developer when they read the code. These lines distract the developer from building a good mental model of the code.
+Just like "strike out useless words" and "shortening wordy prepositional", we want to remove any lines of code that don't contribute to the function. For example, unused variables, unused arguments and dead code paths. These lines of code often introduce confusions to the developer when they read the code. These lines distract the developer from building a good mental model of the code.
 
-Fortunately, modern IDEs, code editors and linters are awesome at highlighting these useless lines of code. Some languages like Golang don't allow you to compile the program if there are unused variables. There are still some cases where it's not highlighted by the tooling and the line of code doesn't serve a significant purpose. For example:
+Fortunately, modern IDEs, code editors and linters are awesome at highlighting these useless lines of code. Some languages like Golang don't allow you to compile the program if there are unused variables. There are still some cases where they aren't highlighted by the tooling and the line of code doesn't serve a significant purpose. For example:
 
 ```python
 name = payload["name"]
@@ -285,7 +285,7 @@ def is_bad_fruit(fruit) -> bool:
     return False
 ```
 
-The if else structure is useless since we can use the if statement condition as the return value. This simplifies the whole function and it's very clear how the return value of this function is determined.
+The if else structure is unnecessary since we can use the if statement condition as the return value. This simplifies the whole function and it's very clear how the return value of this function is determined.
 
 ```python
 def is_bad_fruit(fruit) -> bool:
@@ -299,10 +299,8 @@ Some of these examples can be picked up by linters as they perform static code a
 
 Through the examples and discussions, we have defined what is plain code and applied some of the Plain English guidelines to help us write in plain code. To summarise how we apply the guidelines:
 
-- Reducing the amount of mental work can help the developer to understand the code quicker. We can favour positive phrases when suitable and simplify nested conditions.
+- Reducing the amount of mental work can help the developer to understand the code quicker. We can favour positive phrases when suitable and simplify nested boolean conditions.
 - There are a lot of existing frameworks and patterns that we can use to create structure within our software application. We also discussed at the function level, we can arrange the lines of code in logical order, returning early and using high level comments to help us structure logic clearly.
 - Tools like linter and IDE can help you to write concise code. They can highlight useless lines of code and make suggestions for simplifications. It's useful to include them as part of your toolkit for development.
 
-Lastly, we merely scratch the idea of plain code. We only discussed function level logic. In other layers, there are many ways to structure the software application and model the data. 
-
-Furthermore, the idea of plain code could be different between object oriented programming, functional programming and other programming paradigms. There are researches about coding comprehension and code complexity, it would be insightful to discuss them in respect to plain code. So definitely a lot of ideas and concepts to explore in the future.
+We merely scratch the idea of plain code by only discussing function level logic. There are many ways to structure the software application and model the data. Furthermore, the idea of plain code could be different between object oriented programming, functional programming and other programming paradigms. There are researches about coding comprehension and code complexity, it would be insightful to discuss them in respect to plain code. Consequently, a lot of ideas and concepts to explore in the future.
