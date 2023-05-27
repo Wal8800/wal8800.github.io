@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Writing plain code"
-date:   2023-03-15 17:47:48 +1300
+date:   2023-05-27 17:47:48 +1300
 categories: jekyll update
 ---
 
@@ -11,11 +11,11 @@ As I read the book, I find the definition and some of the guidelines to be appli
 
 ## What is plain code
 
-Deriving from the plain language definition, a piece of code is plain code if the structure and design is so clear that the developer can easily navigate and understand what the code is doing. However, there is an important difference between programming codes and natural languages like English. For a piece of English text, once written and published, the text will mostly be read only. On the other hand, for a code base, it will be read and modified throughout its lifetime. As a result, we need to consider what plain code means for modification.
+Deriving from the plain language definition, let's say a piece of code is plain code if the structure and design is so clear that the developer can easily navigate and understand what the code is doing. However, there is an important difference between programming codes and natural languages like English. For a piece of English text, once written and published, the text will mostly be read only. On the other hand, for a code base, it will be read and modified throughout its lifetime. As a result, we need to consider what plain code means for modification.
 
 If plain code allows the developer to easily navigate the code and builds a good understanding then the developer should be able to leverage their understanding to know where and how to make changes. Furthermore, plain code should be relatively easier to make the right changes, given that from our good understanding, we know the potential impact of the changes. This means we can come up with a plan to deal with the known issues, mitigate potential risks, and avoid negative consequences.
 
-Also, does plain code mean reducing the amount of changes needed to meet the new requirement? I think it mostly depended on the existing implementation. If the existing implementation is not built to be extended for the new requirement then there will be relatively more changes.
+Does plain code also mean reducing the amount of changes needed to meet the new requirement? I think it mostly depended on the existing implementation. If the existing implementation is not built to be extended for the new requirement then there will be relatively more changes.
 
 Requiring less changes for new requirements is a result of extendable code. I would argue plain code and extendable code are two independent properties. Plain code aims to improve the clarity and readability by having clear structure and design. Whereas extendable code is looking forward to the potential use cases and creating a design that caters to the current and potential future requirements. It's possible to have code that has obscure design and structure but once you finally understand it, you realise the existing implementation can be extended to fit the new use with minimal changes.
 
@@ -216,7 +216,7 @@ In English, we want to write concisely so the reader can quickly understand the 
 
 ### Coding concisely
 
-Similarly in coding, we want to write concise codes so that the reader can quickly understand. What is concise code? I think it is code that has a clear intended purpose. It satisfies technical and non technical requirements such as readability and performance. Furthermore, it should be the most efficient and effective representation for logic. This means not necessarily the shortest code like all the logic in a single line but long enough to clearly express the logic in a readable fashion.
+Similarly in coding, we want to write concise codes so that the reader can quickly understand the logic. What is concise code? I think it is code that has a clear intended purpose. It satisfies technical and non technical requirements such as readability and performance. Furthermore, it should be the most efficient and effective representation. This means not always aiming to fit the code in a single line but long enough to clearly express the logic in a readable fashion.
 
 The concept of concise code is applicable at every layer of the code base. Ranging from a single function, codes that integrate different modules together and codes that models the data and domain specific concepts. Given the broad scope, I'm limiting the discussion and examples to the codes within a single function.
 
@@ -249,7 +249,7 @@ is_current = e or d
 if is_valid and is_current
 ```
 
-Grouping the boolean condition with variable assignments provides a way to create semantic meaning for these boolean conditions. This can increase the clarity of the if statement compared to having all the boolean variables in a single condition. Although, this could hide opportunities to simplify the condition but that depends on how we group the conditions.
+Grouping the boolean conditions with variable assignments provides a way to create semantic meaning for these boolean conditions. This can increase the clarity of the if statement compared to having all the boolean variables in a single condition. Although, this could hide opportunities to simplify the condition but that depends on how we group the conditions.
 
 When writing code, we should ask ourselves why each line is there. If a line doesn't have a clear purpose, we should remove it.
 
@@ -285,7 +285,7 @@ def is_bad_fruit(fruit) -> bool:
     return False
 ```
 
-The if else structure is unnecessary since we can use the if statement condition as the return value. This simplifies the whole function and it's very clear how the return value of this function is determined.
+The if else structure is unnecessary since we can use the if statement condition as the return value. This simplifies the whole function and it's clear how the return value of this function is determined.
 
 ```python
 def is_bad_fruit(fruit) -> bool:
@@ -299,8 +299,8 @@ Some of these examples can be picked up by linters as they perform static code a
 
 Through the examples and discussions, we have defined what is plain code and applied some of the Plain English guidelines to help us write in plain code. To summarise how we apply the guidelines:
 
-- Reducing the amount of mental work can help the developer to understand the code quicker. We can favour positive phrases when suitable and simplify nested boolean conditions.
-- There are a lot of existing frameworks and patterns that we can use to create structure within our software application. We also discussed at the function level, we can arrange the lines of code in logical order, returning early and using high level comments to help us structure logic clearly.
-- Tools like linter and IDE can help you to write concise code. They can highlight useless lines of code and make suggestions for simplifications. It's useful to include them as part of your toolkit for development.
+- Reducing the amount of mental work can help the developer to understand the code quicker. We should favour positive phrases when suitable and simplify nested boolean conditions.
+- There are a lot of existing frameworks and patterns that we can use to create structure within our software application. We also discussed at the function level, we should arrange the lines of code in logical order, returning early and using high level comments to help us structure logic clearly.
+- Tools like linter and IDE can help you to write concise code. They can highlight useless lines of code and make suggestions for simplifications. It's useful to include them as part of your development toolkit.
 
 We merely scratch the idea of plain code by only discussing function level logic. There are many ways to structure the software application and model the data. Furthermore, the idea of plain code could be different between object oriented programming, functional programming and other programming paradigms. There are researches about coding comprehension and code complexity, it would be insightful to discuss them in respect to plain code. Consequently, a lot of ideas and concepts to explore in the future.
