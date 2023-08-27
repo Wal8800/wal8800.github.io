@@ -62,10 +62,9 @@ const micropip = await runTime.pyimport("micropip");
 await micropip.install("numpy");
 ```
 
-Next, how do we import custom python module or scripts to use in the web browser? [It’s recommended to package your python code into a wheel and then you can install the package into pyodide.](https://pyodide.org/en/stable/usage/loading-custom-python-code.html)
+Next, how do we import custom python module or scripts to use in the web browser? [It’s recommended to package your python code into a wheel and install the package into pyodide.](https://pyodide.org/en/stable/usage/loading-custom-python-code.html)
 
-To keep it simple, I manually packaged the Big Two python module into a zip file and unpack it at the current directory so the browser's python code can import the package and use the Big Two python module.
-
+To keep it simple, I manually packaged the Big Two python module into a zip file and unpack it at the current directory so the browser's python code can import the package directly
 ```javascript
 const response = await fetch("card-games.zip"); 
 const buffer = await response.arrayBuffer();
@@ -128,7 +127,7 @@ const cat = predictAction(
 );
 ```
 
-We also need to clean up the proxy object after using them, otherwise, we run the risk of memory leak. For instance, as we iterate on `obs.last_cards_played`, we create `card` which is a proxy object. After using the proxy object to create a javascript representation, we need to clean up by calling `destroy()`.
+We also need to clean up the proxy object after using them, otherwise, we run the risk of memory leak. For instance, as we iterate on `obs.last_cards_played`, we create `card` which is a proxy object. After using the proxy object to create a javascript representation, we clean up by calling `destroy()`.
 
 ```javascript
 for (let card of obs.last_cards_played) {
@@ -137,7 +136,7 @@ for (let card of obs.last_cards_played) {
 }
 ```
 
-Fortunately, pyodide does have logic to automatically clean up in more complex situation like [making nested attribute access or method call](https://github.com/pyodide/pyodide/issues/1617) and [passing the proxy object to a javascript function](https://github.com/pyodide/pyodide/issues/1607).
+Fortunately, pyodide does have logic to automatically clean up in more complex situations like [making nested attribute access or method call](https://github.com/pyodide/pyodide/issues/1617) and [passing the proxy object to a javascript function](https://github.com/pyodide/pyodide/issues/1607).
 
 For reference on how the type conversion works, please refer to the [pyodide type translation documentation](https://pyodide.org/en/stable/usage/type-conversions.html), it has great examples and types mapping.
 
@@ -176,16 +175,16 @@ const predictAction = function (
 };
 ```
 
-It’s fairly similar to the [python logic](https://github.com/Wal8800/card-games/blob/698422bfebf2dc3034c027494c4b5f7520c5e62a/ray_runner/multi_agent_bigtwo_runner.py#L59) since tensorflow js provides similar APIs as the python tensorflow library. I did have to explicitly cast model output as `tf.Tensor<tf.Rank>[]` otherwise, the typescript compiler doesn’t recognise it’s an array and doesn’t let me retrieve the first element by index `output[0]`
+It’s fairly similar to the [python logic](https://github.com/Wal8800/card-games/blob/698422bfebf2dc3034c027494c4b5f7520c5e62a/ray_runner/multi_agent_bigtwo_runner.py#L59) since tensorflow js provides similar APIs as the python tensorflow library. I did have to explicitly cast model output as `tf.Tensor<tf.Rank>[]` as the typescript compiler doesn’t recognise it’s an array and doesn’t let me retrieve the first element by index `output[0]`
 
-To get the underlying number from the tensor, we can call `array()` or `arraySync()`. The former is asynchronous and returns a promise that we can resolve to get the value. The purpose is to avoid blocking the UI thread while waiting for computation to be completed as the `tf.Tensor` is acting as the handler for the computation. 
+To get the underlying number from the tensor, we can call `array()` or `arraySync()`. The former is asynchronous and returns a promise that we can resolve to get the value. The purpose is to avoid blocking the UI thread while waiting for computation to be completed as the `tf.Tensor` is actually a handler to the tensor value. 
 
-For our Big Two game, we don’t need to render anything or handle user events while we run inferences for the bot's player turn. Furthermore, the computation is relatively quick so even if we do block the UI thread, it won’t be noticeable in game. 
+For our Big Two game, we use `arraySync` to get the tensor value since we don’t need to render anything or handle user events while we run inferences for the bot's player turn. Furthermore, the computation is relatively quick so even if we do block the UI thread, it won’t be noticeable in game. 
 
 
 ## Putting it together
 
-Now that we can run python code to create a Big Two game and run inference on the Big Two bot model, what’s next? We just need to write two javascript functions to manage the python Big Two game states and call the model whenever it’s the bot turn to play cards. 
+Now that we can run python code to create a Big Two game and run inference on the Big Two bot model, what’s next? We need to write two javascript functions to manage the python Big Two game states and call the model whenever it’s the bot turn to play cards. 
 
 - [resetAndStart](https://github.com/Wal8800/bigtwo-web-client/blob/main/src/App.tsx#L99-L113): which reset the Big Two game and goes through each bot player until it’s the human player turn.
 - [step](https://github.com/Wal8800/bigtwo-web-client/blob/main/src/App.tsx#L115-L147): apply the human player action and play through the bot player’s turn until it’s the human player turn.
@@ -219,7 +218,7 @@ env.step(action)
 end_time = time.monotonic_ns()
 ```
 
-This is not exactly comparing apples to apples as there are some differences between the implementations. For example, on the browser side, there are some type conversions needed when calling the functions under the hood. Whereas on the python side, I'm using the Ray RLLib library to use the bot model. It would still be useful to get a sense of how much the performance changed after we ported the game to the browser.
+This is not exactly comparing apples to apples as there are some differences between the implementations. For example, on the browser side, there are type conversions needed when calling the functions under the hood. Whereas on the python side, I'm using the Ray RLLib library to use the bot model. it is still useful to get a sense of the change in performance after we ported the game to the browser.
 
 Here are the results:
 
@@ -230,6 +229,6 @@ Here are the results:
 | Generating the valid action mask      | 0.01 to 0.03 | 0.1 to 0.3          |
 
 
-For running the bot model, the range of latency is wide. The browser performance ranges from as good as running the model in python to almost 10 times slower. After inspecting the input for each inference, I can't see a pattern that will lead to shorter/longer time taken. It's still great to see, after we convert the model and using tensorflow js, we can still achieve the same performance on the browser. On the other hand, for the python logic, we can see it is consistently 10 times slower in the browser compared to running the code in python. Fortunately, these operations aren't called very frequently and the absolute time taken is very small so it doesn't have a perceivable impact on the game play.
+For running the bot model, the range of latency is wide. The browser performance ranges from as good as running the model in python to almost 10 times slower. After inspecting the input for each inference, I can't see a pattern that will lead to shorter/longer time taken. It's still great to see, after we convert the model and using tensorflow js, we can still achieve the same performance on the browser. On the other hand, for the python logic, we can see it is consistently 10 times slower in the browser compared to running the code in python. Fortunately, these operations aren't called frequently and the absolute time taken is very small so it doesn't have a perceivable impact on the game play.
 
 Overall, Pyodide can be very useful if you want to reuse an existing python module or leverage existing python libraries. For a more performance critical application, the performance slow down might be unappealing however it is on [pyodide roadmap to improve the performance of python code](https://pyodide.org/en/stable/project/roadmap.html#improve-performance-of-python-code-in-pyodide).
