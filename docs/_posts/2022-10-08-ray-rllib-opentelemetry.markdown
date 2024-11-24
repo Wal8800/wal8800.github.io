@@ -33,7 +33,7 @@ Early stopping at step 10 due to reaching max kl: 0.015266045928001404
 
 The default RLlib metric didn't indicates how long it spent sampling the environment. Before Ray v2.0, it provided `sample_time_ms` but the value doesn't make sense if we add it together with `learn_time_ms` as the sum didn't equal to the `training_iteration_time_ms`.
 
-Fortunately, [Ray allows us to instrument the framework using OpenTelemetry](https://docs.ray.io/en/latest/ray-observability/ray-tracing.html) so we can generate traces and get a better understanding of the underlying operations. 
+Fortunately, [Ray allows us to instrument the framework using OpenTelemetry](https://docs.ray.io/en/latest/ray-observability/ray-tracing.html) so we can generate traces and get a better understanding of the underlying operations.
 
 
 ## Setting up OpenTelemetry
