@@ -12,12 +12,15 @@ What has stuck with me the most is how these principles appear not just in the e
 Applying constraints can make a product’s function easier to discover and use. They can also make feedback clearer. Different constraints appear across various parts of software systems.
 
 **Code**
+
 In statically typed languages, type constraints help communicate the intended use of functions and variables. For example, if a function returns a nullable string (String?), it signals to the developer that they need to handle the null case. Ignoring this could lead to runtime errors. These constraints not only reduce bugs but also improve readability and maintainability.
 
 **System Architecture**
+
 When a software system enforces that all external API requests go through a single API gateway, it creates a logical constraint on how requests flow into the system. This results in a simpler mental model compared to systems with multiple entry points. It also makes it easier for developers to trace incoming traffic, since there is only one place to look.
 
 **Tooling and Tech Stack**
+
 Standardizing the tech stack, such as using React for frontend, Express for backend, and PostgreSQL for the database, reduces cognitive load for developers moving between projects. For example, if every internal web app uses the same component library, a developer switching teams can contribute more quickly. This is because UI patterns are familiar and tooling, such as linters and build pipelines, behaves predictably.
 
 
@@ -25,12 +28,15 @@ Standardizing the tech stack, such as using React for frontend, Express for back
 In the book, Norman discusses different types of user errors and how to design products that help users avoid or recover from them. This idea also applies to software systems, where errors are inevitable. What matters is how we handle them. Many modern best practices are built around this principle.
 
 **Failing safely and visibly**
+
 In a web application, showing a clear error message like “Invalid email format” helps users recover quickly. In backend systems, failing fast with descriptive logs, rather than silently failing, helps engineers detect and resolve issues sooner.
 
 **Minimizing time to recovery**
+
 In distributed systems, patterns like circuit breakers help isolate failures and prevent cascading problems. If one service becomes unresponsive, the circuit breaker trips and returns a fallback response. This allows the system to degrade gracefully instead of crashing completely.
 
 **Proactive detection**
+
 Observability tools like Prometheus and Grafana, paired with alerting systems like PagerDuty, help detect issues before users even notice them. For example, an alert might trigger when API latency exceeds a certain threshold. This gives engineers a chance to respond early and avoid user-visible problems.
 
 ## People and technology
