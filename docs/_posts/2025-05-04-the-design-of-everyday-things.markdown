@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The Design of Everyday Things in Software Development"
-date:   2024-10-09 17:00:48 +1300
+date:   2025-05-04 17:00:48 +1300
 ---
 
 _The Design of Everyday Things_ is a book about how humans interact with products, offering principles and frameworks that help improve user experience.
@@ -49,3 +49,4 @@ AI tools like GitHub Copilot enhance developer productivity by generating boiler
 
 ## Final thoughts
 The principles from The Design of Everyday Things are not just for product designers. They are valuable for anyone involved in building software. Whether the goal is to make code easier to read, systems easier to debug, or tools easier to use, thoughtful design benefits everyone. When we apply these ideas consistently across the development lifecycle, we improve not only the systems we build but also the experience of working with them.
+
